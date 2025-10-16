@@ -1,0 +1,22 @@
+{
+  "name": "load-balancer",
+  "module": "./src/lb/index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "lb": "bun run src/lb/index.ts",
+    "servers": "bun run src/servers/server1.ts && bun run src/servers/server2.ts && bun run src/servers/server3.ts",
+    "server1": "bun run src/servers/server1.ts",
+    "server2": "bun run src/servers/server2.ts",
+    "server3": "bun run src/servers/server3.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "hono": "^4.9.12"
+  }
+}
