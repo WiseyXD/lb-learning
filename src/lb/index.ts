@@ -51,6 +51,10 @@ app.get('/round-robin', async (c) => {
     }
 })
 
+app.get('/weighted', (c) => {
+
+})
+
 export default {
     port: 3000,
     fetch: app.fetch,
