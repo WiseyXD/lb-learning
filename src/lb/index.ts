@@ -4,6 +4,9 @@ const app = new Hono()
 const ports = [3001, 3002, 3003];
 let counter = 0;
 
+let maxCounterFor3 = 3;
+let maxCounterFor2 = 2;
+let maxCounterFor1 = 1;
 
 const randomIndex = () => {
     const numberOfServers = ports.length;
@@ -51,8 +54,36 @@ app.get('/round-robin', async (c) => {
     }
 })
 
-app.get('/weighted', (c) => {
+app.get('/weighted', async (c) => {
+    // lets say server 1 can sserver 3 , server2 => 2 ,server1 => 1
+    if (maxCounterFor3 < 1) {
+        if (maxCounterFor2 < 1) {
+            if (maxCounterFor1 < 1) {
+                maxCounterFor1 = 1;
+                maxCounterFor2 = 2;
+                maxCounterFor3 = 3;
+                return c.text("All servers are occupied !");
 
+            }
+            else {
+                const response = await fetch('http://localhost:3001');
+                const data = await response.text();
+                maxCounterFor1--;
+                return c.text(data);
+            }
+        }
+        else {
+            const response = await fetch('http://localhost:3002');
+            const data = await response.text();
+            maxCounterFor2--;
+            return c.text(data);
+        }
+    } else {
+        const response = await fetch('http://localhost:3003');
+        const data = await response.text();
+        maxCounterFor3--;
+        return c.text(data);
+    }
 })
 
 export default {
