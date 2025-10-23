@@ -50,9 +50,7 @@ app.get('/round-robin', async (c) => {
     // else if (counter == 1) {
 
     //     const response = await fetch('http://localhost:3002');
-    //     const data = await response.text();
-    //     console.log(data)
-    //     counter++;
+    //     const data = await response.text(); console.log(data) counter++;
     //     return c.text(data);
     // }
     // else {
@@ -62,6 +60,8 @@ app.get('/round-robin', async (c) => {
     //     counter = 0;
     //     return c.text(data);
     // }
+    //
+    // best 
 
     const selectedPort = ports[counter % ports.length];
     counter++;
