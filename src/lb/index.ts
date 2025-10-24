@@ -104,11 +104,25 @@ app.get('/weighted', async (c) => {
 
     const selectedPort = weightedList[currentIndex];
     currentIndex = (currentIndex + 1) % weightedList.length;
+    /* test if it is healthy or not , if not then try the next server and if all the servers are not healthy then reject add a while loop or something and the condition must to be to loop untill a healthy server is found and if one rotation is done then send 
+     * error and break the loop*/
+    const isHealthy = await checkHealth(selectedPort);
+    if (!isHealthy) {
+
+    }
     const response = await fetch(`http://localhost:${selectedPort}`);
     const data = await response.text();
     return c.text(data);
 
 })
+
+async function checkHealth(port: number) {
+    const response = await fetch(
+        `http://localhost:${port}/health`
+    )
+    const data = response.text();
+    return data;
+}
 
 export default {
     port: 3000,
