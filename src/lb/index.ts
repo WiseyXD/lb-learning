@@ -1,3 +1,4 @@
+import { sleep } from 'bun';
 import { Hono } from 'hono'
 
 const app = new Hono()
@@ -18,8 +19,8 @@ let weightedList = servers.flatMap(s => Array(s.weight).fill(s.port));
 let currentIndex = 0;
 
 
-const randomIndex = () => {
-    const numberOfServers = ports.length;
+const randomIndex = (array: number[]) => {
+    const numberOfServers = array.length;
     const random = Math.random();
     const index = Math.floor(numberOfServers * random);
     return index;
@@ -30,7 +31,7 @@ app.get('/', (c) => c.text('Halo from Load balancer!'))
 
 app.get('/random', async (c) => {
     // redirect to random servers
-    const foundIndex = randomIndex();
+    const foundIndex = randomIndex(ports);
     const selectedPort = ports[foundIndex];
     console.log(selectedPort);
     const response = await fetch(`http://localhost:${selectedPort}`);
@@ -135,6 +136,52 @@ app.get("/health-brute-force", async (c) => {
 
 })
 
+const availablePorts = <number[]>[];
+
+app.get('/heatlh-dynamic', async (c) => {
+    /*here we have to firstly keep on check the health of each server and then dynamically add them to the pool of server that are available to server
+     * we can create a new setTimeout function that starts when the server start and keep on checking the servers and the dynamically set the available server in an new array
+     * the crashed server must be pinged again after 10 seconds*/
+    const foundIndex = randomIndex(availablePorts);
+    const foundPort = availablePorts[foundIndex]
+    if (!foundPort) {
+        return c.text('No servers are up right now , send the request again!')
+    }
+    console.log("port to hit", foundPort)
+    const response = await fetch(`http://localhost:${foundPort}`)
+    const data = await response.text();
+    return c.text(data);
+
+})
+
+// polling funtion to check health of all the server
+async function checkEachServer() {
+    let i = 0;
+    while (true) {
+        if (i > 2) {
+            i = 0;
+        }
+        let currentPort = servers[i]?.port!;
+        const isHealthy = await checkHealth(currentPort)
+        if (isHealthy) {
+            if (!availablePorts.includes(currentPort)) {
+                availablePorts.push(currentPort)
+            }
+        }
+        else {
+            if (availablePorts.includes(currentPort)) {
+                const indexToBeRemoved = availablePorts.indexOf(currentPort);
+                if (indexToBeRemoved > -1) {
+                    availablePorts.splice(indexToBeRemoved, 1)
+                }
+            }
+        }
+        i++;
+        console.log("currently availablePorts are: ", availablePorts)
+        await sleep(2000)
+    }
+}
+
 async function checkHealth(port: number) {
     const response = await fetch(
         `http://localhost:${port}/health`
@@ -142,6 +189,8 @@ async function checkHealth(port: number) {
     const data = await response.json();
     return data.isHealthy!;
 }
+
+checkEachServer();
 
 export default {
     port: 3000,

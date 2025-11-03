@@ -7,9 +7,7 @@ app.get('/', (c) => {
 });
 
 app.get('/health', (c) => {
-    return c.json({ isHealthy: false })
-
-    // return c.json({ isHealthy: Math.random() < 0.5 })
+    return c.json({ isHealthy: Math.random() < 0.5 })
 })
 
 export default {
