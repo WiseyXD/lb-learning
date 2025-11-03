@@ -2,7 +2,6 @@ import { Hono } from 'hono'
 
 const app = new Hono()
 app.get('/', (c) => {
-    console.log('server1 clicked')
     return c.text('Halo from server1!')
 });
 

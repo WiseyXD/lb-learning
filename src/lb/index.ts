@@ -5,10 +5,6 @@ const app = new Hono()
 const ports = [3001, 3002, 3003];
 let counter = 0;
 
-let maxCounterFor3 = 3;
-let maxCounterFor2 = 2;
-let maxCounterFor1 = 1;
-
 const servers = [
     { port: 3001, weight: 1 },
     { port: 3002, weight: 2 },
@@ -30,7 +26,6 @@ const randomIndex = (array: number[]) => {
 app.get('/', (c) => c.text('Halo from Load balancer!'))
 
 app.get('/random', async (c) => {
-    // redirect to random servers
     const foundIndex = randomIndex(ports);
     const selectedPort = ports[foundIndex];
     console.log(selectedPort);
@@ -41,79 +36,22 @@ app.get('/random', async (c) => {
 })
 
 app.get('/round-robin', async (c) => {
-    // if (counter == 0) {
-    //     const response = await fetch('http://localhost:3001');
-    //     const data = await response.text();
-    //     console.log(data)
-    //     counter++;
-    //     return c.text(data);
-    // }
-    // else if (counter == 1) {
-
-    //     const response = await fetch('http://localhost:3002');
-    //     const data = await response.text(); console.log(data) counter++;
-    //     return c.text(data);
-    // }
-    // else {
-    //     const response = await fetch('http://localhost:3003');
-    //     const data = await response.text();
-    //     console.log(data)
-    //     counter = 0;
-    //     return c.text(data);
-    // }
-    //
-    // best 
-
     const selectedPort = ports[counter % ports.length];
     counter++;
     const response = await fetch(`http://localhost:${selectedPort}`);
     const data = await response.text();
     return c.text(data);
-
 })
 
 app.get('/weighted', async (c) => {
-    // lets say server 1 can sserver 3 , server2 => 2 ,server1 => 1
-    // if (maxCounterFor3 < 1) {
-    //     if (maxCounterFor2 < 1) {
-    //         if (maxCounterFor1 < 1) {
-    //             maxCounterFor1 = 1;
-    //             maxCounterFor2 = 2;
-    //             maxCounterFor3 = 3;
-    //             return c.text("All servers are occupied !");
-
-    //         }
-    //         else {
-    //             const response = await fetch('http://localhost:3001');
-    //             const data = await response.text();
-    //             maxCounterFor1--;
-    //             return c.text(data);
-    //         }
-    //     }
-    //     else {
-    //         const response = await fetch('http://localhost:3002');
-    //         const data = await response.text();
-    //         maxCounterFor2--;
-    //         return c.text(data);
-    //     }
-    // } else {
-    //     const response = await fetch('http://localhost:3003');
-    //     const data = await response.text();
-    //     maxCounterFor3--;
-    //     return c.text(data);
-    // }
-
     const selectedPort = weightedList[currentIndex];
     currentIndex = (currentIndex + 1) % weightedList.length;
-
     const response = await fetch(`http://localhost:${selectedPort}`);
-
     const data = await response.text();
     return c.text(data);
 })
 
 app.get("/health-brute-force", async (c) => {
-
     let isHealthy = false;
     let selectedPort;
     let i = 0;
@@ -139,9 +77,6 @@ app.get("/health-brute-force", async (c) => {
 const availablePorts = <number[]>[];
 
 app.get('/heatlh-dynamic', async (c) => {
-    /*here we have to firstly keep on check the health of each server and then dynamically add them to the pool of server that are available to server
-     * we can create a new setTimeout function that starts when the server start and keep on checking the servers and the dynamically set the available server in an new array
-     * the crashed server must be pinged again after 10 seconds*/
     const foundIndex = randomIndex(availablePorts);
     const foundPort = availablePorts[foundIndex]
     if (!foundPort) {
@@ -186,8 +121,8 @@ async function checkHealth(port: number) {
     const response = await fetch(
         `http://localhost:${port}/health`
     )
-    const data = await response.json();
-    return data.isHealthy!;
+    const data = (await response.json()) as { isHealthy?: boolean };
+    return Boolean(data.isHealthy);
 }
 
 checkEachServer();
